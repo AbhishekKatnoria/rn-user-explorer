@@ -6,15 +6,20 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 export default function UserCard({ user, isFav, onToggleFav }) {
   return (
     <View style={styles.card}>
       <Image source={{ uri: user?.avatar }} style={styles.avatar} />
       <Text style={styles.name}>{user?.first_name} {user?.last_name}</Text>
-      <TouchableOpacity onPress={onToggleFav}>
-        <Text style={styles.star}>{isFav ? '⭐' : '☆'}</Text>
-      </TouchableOpacity>
+      <Icon
+        name="star"
+        size={25}
+        color={isFav ? 'gold' : 'gray'}
+        style={{ backgroundColor: 'none' }}
+        onPress={onToggleFav}
+      />
     </View>
   );
 }
