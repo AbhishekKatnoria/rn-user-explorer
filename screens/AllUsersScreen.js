@@ -23,8 +23,8 @@ export default function AllUsersScreen() {
   const fetchUsers = async (page) => {
     try {
       const res = await axios.get(`${API_BASE_URL}/users?page=${page}`);
-      setUsers(res.data.data);
-      setTotalPages(res.data.total_pages);
+      setUsers(res?.data?.data);
+      setTotalPages(res?.data?.total_pages);
     } catch (err) {
       console.error('Error fetching users:', err);
     }
@@ -35,8 +35,8 @@ export default function AllUsersScreen() {
     fetchUsers(currentPage);
   }, [currentPage]);
 
-  const filteredUsers = users.filter(user =>
-    `${user.first_name} ${user.last_name}`.toLowerCase().includes(search.toLowerCase())
+  const filteredUsers = users?.filter(user =>
+    `${user?.first_name} ${user?.last_name}`.toLowerCase().includes(search?.toLowerCase())
   );
 
   return (
@@ -50,11 +50,11 @@ export default function AllUsersScreen() {
 
       <FlatList
         data={filteredUsers}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item?.id?.toString()}
         renderItem={({ item }) => (
           <UserCard
             user={item}
-            isFav={favorites.some((f) => f.id === item.id)}
+            isFav={favorites?.some((f) => f?.id === item?.id)}
             onToggleFav={() => toggleFavorite(item)}
           />
         )}
@@ -62,7 +62,7 @@ export default function AllUsersScreen() {
 
       {/* Simple Pagination Buttons */}
       <View style={styles.pagination}>
-        {[...Array(totalPages)].map((_, index) => (
+        {[...Array(totalPages)]?.map((_, index) => (
           <TouchableOpacity
             key={index}
             onPress={() => setCurrentPage(index + 1)}
