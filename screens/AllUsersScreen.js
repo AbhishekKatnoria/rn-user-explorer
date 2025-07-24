@@ -5,6 +5,7 @@ import {
   TextInput,
   FlatList,
   StyleSheet,
+  TouchableOpacity,
 } from 'react-native';
 import axios from 'axios';
 import { FavoritesContext } from '../context/FavoritesContext';
@@ -13,33 +14,54 @@ import { API_BASE_URL } from '@env';
 
 export default function AllUsersScreen() {
   const [users, setUsers] = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
   const [search, setSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const { favorites, toggleFavorite } = useContext(FavoritesContext);
 
-  // Fetch all users from page 1 and page 2 only
-  const fetchAllUsers = async () => {
+  // Fetch users for pagination (current page)
+  const fetchUsers = async (page) => {
     try {
-      const [page1, page2] = await Promise.all([
-        axios.get(`${API_BASE_URL}/users?page=1`),
-        axios.get(`${API_BASE_URL}/users?page=2`)
-      ]);
-      setUsers([
-        ...(page1?.data?.data || []),
-        ...(page2?.data?.data || []),
-      ]);
+      const response = await axios.get(`${API_BASE_URL}/users?page=${page}`);
+      setUsers(response?.data?.data || []);
+      setTotalPages(response?.data?.total_pages || 1);
     } catch (err) {
-      console.error('Error fetching users:', err);
+      console.error(err);
     }
   };
 
-  // Fetch all users when the component mounts
-  useEffect(() => {
-    fetchAllUsers();
-  }, []);
+  // Fetch all users dynamically for search
+  const fetchAllUsers = async () => {
+    try {
+      const allUsersData = [];
+      for (let i = 1; i <= totalPages; i++) {
+        const response = await axios.get(`${API_BASE_URL}/users?page=${i}`);
+        allUsersData.push(...response?.data?.data || []);
+      }
+      setAllUsers(allUsersData);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-  const filteredUsers = users?.filter(user =>
-    `${user?.first_name} ${user?.last_name}`.toLowerCase().includes(search?.toLowerCase())
-  );
+  // Perform search filtering from all users
+  const filteredUsers = search
+    ? allUsers.filter(user =>
+      `${user?.first_name} ${user?.last_name}`
+        .toLowerCase()
+        .includes(search?.toLowerCase())
+    )
+    : users;
+
+  // Fetch users for the current page (pagination) and all users for search
+  useEffect(() => {
+    if (search) {
+      fetchAllUsers();
+    } else {
+      fetchUsers(currentPage);
+    }
+  }, [currentPage, search]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -61,6 +83,18 @@ export default function AllUsersScreen() {
           />
         )}
       />
+
+      <View style={styles.pagination}>
+        {[...Array(totalPages)].map((_, i) => (
+          <TouchableOpacity
+            key={i}
+            style={[styles.pageButton, currentPage === i + 1 && styles.activePage]}
+            onPress={() => setCurrentPage(i + 1)}
+          >
+            <Text style={styles.pageText}>{i + 1}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
     </View>
   );
 }
@@ -76,14 +110,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     marginVertical: 10,
+    flexWrap: 'wrap',
   },
-  pageBtn: {
+  pageButton: {
     backgroundColor: '#eee',
-    padding: 10,
-    marginHorizontal: 5,
-    borderRadius: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    margin: 4,
+    borderRadius: 6,
   },
-  active: {
+  activePage: {
     backgroundColor: '#007bff',
+  },
+  pageText: {
+    color: '#000',
   },
 });
