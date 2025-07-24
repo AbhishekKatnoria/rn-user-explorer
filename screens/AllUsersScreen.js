@@ -19,8 +19,10 @@ export default function AllUsersScreen() {
   // Fetch all users from page 1 and page 2 only
   const fetchAllUsers = async () => {
     try {
-      const page1 = await axios.get(`${API_BASE_URL}/users?page=1`);
-      const page2 = await axios.get(`${API_BASE_URL}/users?page=2`);
+      const [page1, page2] = await Promise.all([
+        axios.get(`${API_BASE_URL}/users?page=1`),
+        axios.get(`${API_BASE_URL}/users?page=2`)
+      ]);
       setUsers([
         ...(page1?.data?.data || []),
         ...(page2?.data?.data || []),
